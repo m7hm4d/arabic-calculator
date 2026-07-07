@@ -1,0 +1,1177 @@
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>الآلة الحاسبة</title>
+<style>
+  :root {
+    --bg: #000000;
+    --num-bg: #333333;
+    --num-bg-active: #4a4a4a;
+    --func-bg: #656565;
+    --func-bg-active: #7d7d7d;
+    --op-bg: #ff9f0a;
+    --op-bg-active: #ffbd57;
+    --text: #ffffff;
+    --sheet-bg: #1c1c1e;
+    --menu-bg: #2c2c2e;
+    --hair: rgba(255, 255, 255, 0.12);
+    --gray: rgba(255, 255, 255, 0.5);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  html, body { height: 100%; }
+  body {
+    background: #050505;
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", "Segoe UI",
+      Roboto, "Helvetica Neue", Arial, "Noto Sans Arabic", "Noto Kufi Arabic", sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100%;
+  }
+
+  .phone {
+    width: 100vw; height: 100vh; height: 100dvh;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  /* header */
+  .header {
+    flex: 0 0 auto; width: var(--col-w, 100%); margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: max(14px, env(safe-area-inset-top)) 2px 0;
+  }
+  .icon-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,0.08); border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; cursor: pointer;
+  }
+  .icon-btn:active { background: rgba(255,255,255,0.18); }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  /* display */
+  .display {
+    flex: 1 1 auto; min-height: 0; width: var(--col-w, 100%); margin: 0 auto;
+    display: flex; flex-direction: column;
+    align-items: stretch; justify-content: flex-end;
+    padding: 0 0 8px;
+  }
+  .expr-small {
+    color: var(--gray); font-size: 26px; font-weight: 300;
+    text-align: right; direction: ltr;
+    min-height: 30px; overflow: hidden; white-space: nowrap;
+  }
+  .expr-big {
+    color: var(--text); font-weight: 300; line-height: 1.06;
+    font-size: 82px; letter-spacing: -1px;
+    direction: ltr; text-align: right; white-space: nowrap;
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+  }
+  .expr-big::-webkit-scrollbar { display: none; }
+
+  /* keypad */
+  .sci {
+    display: none; flex: 0 0 auto; width: var(--col-w, 100%); margin: 0 auto;
+    grid-template-columns: repeat(6, var(--sci-w, 52px));
+    justify-content: center;
+    gap: var(--gap, 8px); padding: 0 0 var(--gap, 8px);
+  }
+  .phone.scientific .sci { display: grid; }
+  .sci button {
+    width: var(--sci-w, 52px); height: var(--sci-h, 44px);
+    border: none; border-radius: var(--pill, 22px);
+    background: #1c1c1c; color: #fff; line-height: 1; text-align: center;
+    font-size: calc(var(--sci-h, 44px) * 0.36); font-weight: 400; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .sci button:active { background: #3a3a3a; }
+  .sci button.tgl { color: var(--op-bg); }
+  .sci button.on { background: var(--op-bg); color: #000; }
+  .sci button sup { font-size: 0.6em; vertical-align: super; }
+  .sci button sub { font-size: 0.6em; vertical-align: sub; }
+
+  .keys {
+    flex: 0 0 auto; width: var(--col-w, 100%); margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, var(--main-btn, 78px));
+    justify-content: center;
+    gap: var(--gap, 14px);
+    padding: var(--gap, 12px) 0 max(var(--padx, 18px), env(safe-area-inset-bottom));
+  }
+  .phone.scientific .keys {
+    grid-template-columns: repeat(4, var(--pad-w, 78px));
+    padding-top: 0;
+  }
+  button.key {
+    width: var(--main-btn, 78px); height: var(--main-btn, 78px);
+    border: none; border-radius: 50%;
+    font-size: calc(var(--main-btn, 78px) * 0.4); font-weight: 400; color: var(--text);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: filter .08s, background-color .12s, transform .05s;
+  }
+  .phone.scientific button.key {
+    width: var(--pad-w, 78px); height: var(--pad-h, 60px);
+    border-radius: var(--pill, 30px);
+    font-size: calc(var(--pad-h, 60px) * 0.52);
+  }
+  button.key:active { transform: scale(.96); }
+  .key.num { background: var(--num-bg); }
+  .key.num:active { background: var(--num-bg-active); }
+  .key.func { background: var(--func-bg); font-size: calc(var(--main-btn, 78px) * 0.32); font-weight: 500; }
+  .phone.scientific .key.func { font-size: calc(var(--pad-h, 60px) * 0.42); }
+  .key.func:active { background: var(--func-bg-active); }
+  .key.op { background: var(--op-bg); }
+  .key.op:active { background: var(--op-bg-active); }
+  .key.op svg { width: 1em; height: 1em; }
+  .key svg { pointer-events: none; }
+
+  .body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+
+  /* landscape (computer / wide screens): display on the left, keypad on the right */
+  .phone.landscape .body {
+    flex-direction: row; align-items: stretch;
+    gap: var(--gap, 12px); padding: 0 var(--padx, 24px) var(--padx, 24px);
+  }
+  .phone.landscape .header { width: 100%; margin: 0; padding-left: var(--padx); padding-right: var(--padx); }
+  .phone.landscape .display {
+    width: auto; flex: 1 1 auto; margin: 0; min-height: 0; min-width: 0;
+    align-self: stretch; justify-content: center; padding: 0 var(--gap) 0 0;
+  }
+  .phone.landscape .sci  { width: auto; margin: 0; align-self: center; padding: 0; }
+  .phone.landscape .keys { width: auto; margin: 0; align-self: center; padding: 0; }
+  /* scientific landscape: display spans the top, keypad spreads below */
+  .phone.landscape.scientific .body { flex-wrap: wrap; align-content: center; row-gap: var(--gap); }
+  .phone.landscape.scientific .display {
+    width: 100%; flex: 0 0 100%; height: var(--disp-h, 160px);
+    align-self: auto; justify-content: flex-end; padding: 0 var(--padx) 0 0;
+  }
+
+  /* ---------- overlays ---------- */
+  .backdrop {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 20;
+  }
+  .backdrop.show { opacity: 1; pointer-events: auto; }
+
+  /* menu popup */
+  .menu {
+    position: absolute; top: 70px; left: 18px; z-index: 30;
+    width: 258px; background: var(--menu-bg);
+    border-radius: 22px; padding: 6px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    transform-origin: top left; transform: scale(.85); opacity: 0;
+    pointer-events: none; transition: transform .16s ease, opacity .16s ease;
+    backdrop-filter: blur(20px);
+  }
+  .menu.show { transform: scale(1); opacity: 1; pointer-events: auto; }
+  .menu-item {
+    display: flex; direction: rtl; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 14px; cursor: pointer; color: #fff;
+  }
+  .menu-item:active { background: rgba(255,255,255,0.08); }
+  .menu-item .chk { width: 20px; font-size: 17px; color: #fff; text-align: center; }
+  .menu-item .ic { width: 24px; display: flex; justify-content: center; }
+  .menu-item .ic svg { width: 21px; height: 21px; }
+  .menu-item .lbl { flex: 1; text-align: right; font-size: 17px; }
+  .menu-sep { height: 1px; background: var(--hair); margin: 5px 10px; }
+
+  /* bottom sheet (history / notes / convert) */
+  .sheet {
+    position: absolute; left: 50%; bottom: 0; z-index: 30;
+    width: 100%; max-width: 560px;
+    height: 82%; max-height: 780px; background: var(--sheet-bg);
+    border-radius: 26px 26px 0 0;
+    transform: translate(-50%, 100%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    display: flex; flex-direction: column;
+  }
+  .sheet.show { transform: translate(-50%, 0); }
+  .sheet-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 10px;
+  }
+  .sheet-head .title { color:#fff; font-size: 18px; font-weight: 600; }
+  .sheet-x {
+    width: 34px; height: 34px; border-radius: 50%; border: none;
+    background: rgba(255,255,255,0.12); color: #fff; font-size: 18px; cursor: pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sheet-action { color: var(--op-bg); font-size: 17px; background: none; border: none; cursor: pointer; }
+  .sheet-body { flex: 1; overflow-y: auto; padding: 0 20px 24px; }
+
+  /* history */
+  .hist-empty { color: var(--gray); text-align: center; margin-top: 60px; font-size: 16px; }
+  .hist-group { color: var(--gray); text-align: right; font-size: 15px; margin: 18px 4px 4px; direction: rtl; }
+  .hist-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 4px; border-bottom: 1px solid var(--hair); cursor: pointer; direction: rtl;
+  }
+  .hist-item .del {
+    width: 26px; height: 26px; border-radius: 50%; border: none;
+    background: #ff453a; color: #fff; font-size: 18px; line-height: 1; cursor: pointer;
+    display: none; align-items: center; justify-content: center; flex: 0 0 auto;
+  }
+  .sheet.editing .hist-item .del { display: flex; }
+  .hist-item .calc { flex: 1; text-align: right; direction: ltr; }
+  .hist-item .he { color: var(--gray); font-size: 18px; line-height: 1.3; }
+  .hist-item .hr { color: #fff; font-size: 30px; font-weight: 400; line-height: 1.15; }
+
+  /* notes */
+  .notes-ta {
+    width: 100%; min-height: 150px; background: #111; color: #fff;
+    border: 1px solid var(--hair); border-radius: 14px; padding: 14px;
+    font-size: 20px; direction: ltr; text-align: right; resize: vertical; outline: none;
+    font-family: inherit;
+  }
+  .notes-hint { color: var(--gray); font-size: 14px; margin: 10px 2px; text-align: right; direction: rtl; }
+  .notes-res { list-style: none; }
+  .notes-res li {
+    display: flex; justify-content: space-between; direction: ltr;
+    padding: 10px 2px; border-bottom: 1px solid var(--hair);
+    font-size: 20px; color: #fff;
+  }
+  .notes-res li .ex { color: var(--gray); }
+  .notes-res li .rs { color: var(--op-bg); font-weight: 600; }
+
+  /* convert */
+  .conv-cats { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; direction: rtl; }
+  .conv-cat {
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--hair);
+    background: #111; color: #fff; font-size: 15px; cursor: pointer;
+  }
+  .conv-cat.active { background: var(--op-bg); border-color: var(--op-bg); color: #000; }
+  .conv-row { display: flex; align-items: center; gap: 12px; margin: 14px 0; direction: rtl; }
+  .conv-row select {
+    background: #111; color: #fff; border: 1px solid var(--hair);
+    border-radius: 12px; padding: 12px; font-size: 16px; width: 130px; font-family: inherit;
+  }
+  .conv-row input {
+    flex: 1; background: #111; color: #fff; border: 1px solid var(--hair);
+    border-radius: 12px; padding: 12px 14px; font-size: 22px; text-align: left;
+    direction: ltr; outline: none; font-family: inherit; min-width: 0;
+  }
+  .conv-out { color: var(--op-bg); font-weight: 600; }
+  .conv-note { color: var(--gray); font-size: 13px; text-align: center; margin-top: 18px; direction: rtl; }
+
+  .toast {
+    position: absolute; left: 50%; bottom: 120px; transform: translateX(-50%) translateY(20px);
+    background: rgba(60,60,60,0.95); color: #fff; padding: 12px 22px; border-radius: 999px;
+    font-size: 16px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 40;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+
+<div class="phone" id="phone">
+  <!-- header -->
+  <div class="header">
+    <button class="icon-btn" id="menuBtn" aria-label="الأوضاع">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="2.5" width="16" height="19" rx="2.5" />
+        <rect x="7" y="5.5" width="10" height="4" rx="1" fill="currentColor" stroke="none" />
+        <circle cx="8" cy="13" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="13" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="16" cy="13" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="8" cy="17" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="17" r="1.1" fill="currentColor" stroke="none"/>
+        <circle cx="16" cy="17" r="1.1" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+    <button class="icon-btn" id="histBtn" aria-label="السجل">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15.5 14" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="body">
+  <!-- display -->
+  <div class="display">
+    <div class="expr-small" id="exprSmall"></div>
+    <div class="expr-big" id="exprBig">0</div>
+  </div>
+
+  <!-- scientific keypad (6 columns) -->
+  <div class="sci" id="sci">
+    <button data-mem="MC">م.ذ</button>
+    <button data-mem="M-">ذ−</button>
+    <button data-mem="M+">ذ+</button>
+    <button data-mem="MR">ذ</button>
+    <button data-sci="(">(</button>
+    <button data-sci=")">)</button>
+
+    <button data-act="2nd" id="shiftBtn">ثانوي</button>
+    <button data-sci="10^">10<sup>س</sup></button>
+    <button data-sci="e^">ه<sup>س</sup></button>
+    <button data-sci="^">س<sup>ص</sup></button>
+    <button data-sci="^3">س<sup>3</sup></button>
+    <button data-sci="^2">س<sup>2</sup></button>
+
+    <button data-sci="log(">لو</button>
+    <button data-sci="ln(">لوﻫ</button>
+    <button data-sci="^(1/"><sup>ص</sup>√س</button>
+    <button data-sci="cbrt("><sup>3</sup>√س</button>
+    <button data-sci="sqrt(">√س</button>
+    <button data-sci="^-1">1/س</button>
+
+    <button data-sci="×10^">×10<sup>س</sup></button>
+    <button data-sci="e">ﻫ</button>
+    <button data-sci="tan(" data-sci2="atan(" data-lbl="ظا" data-lbl2="ظا⁻¹" class="trig">ظا</button>
+    <button data-sci="cos(" data-sci2="acos(" data-lbl="جتا" data-lbl2="جتا⁻¹" class="trig">جتا</button>
+    <button data-sci="sin(" data-sci2="asin(" data-lbl="جا" data-lbl2="جا⁻¹" class="trig">جا</button>
+    <button data-sci="!">س!</button>
+
+    <button data-act="rand">عشوائي</button>
+    <button data-sci="π">π</button>
+    <button data-sci="cot(">ظتا</button>
+    <button data-sci="csc(">قتا</button>
+    <button data-sci="sec(">قا</button>
+    <button data-sci="deg" id="degBtn">درجة</button>
+  </div>
+
+  <!-- keypad -->
+  <div class="keys">
+    <button class="key func" data-action="backspace" aria-label="مسح خانة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+        stroke-linecap="round" stroke-linejoin="round" style="width:1.05em;height:1.05em">
+        <path d="M21 5H9L3 12l6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1Z" />
+        <line x1="17" y1="9.5" x2="12" y2="14.5" /><line x1="12" y1="9.5" x2="17" y2="14.5" />
+      </svg>
+    </button>
+    <button class="key func" data-action="clear" id="clearBtn">حذف</button>
+    <button class="key func" data-action="percent">%</button>
+    <button class="key op" data-action="operator" data-op="÷" aria-label="قسمة">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <circle cx="12" cy="6.5" r="1.4" fill="currentColor" stroke="none" />
+        <circle cx="12" cy="17.5" r="1.4" fill="currentColor" stroke="none" /></svg>
+    </button>
+
+    <button class="key num" data-digit="7">7</button>
+    <button class="key num" data-digit="8">8</button>
+    <button class="key num" data-digit="9">9</button>
+    <button class="key op" data-action="operator" data-op="×" aria-label="ضرب">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="7" y1="7" x2="17" y2="17" /><line x1="17" y1="7" x2="7" y2="17" /></svg>
+    </button>
+
+    <button class="key num" data-digit="4">4</button>
+    <button class="key num" data-digit="5">5</button>
+    <button class="key num" data-digit="6">6</button>
+    <button class="key op" data-action="operator" data-op="−" aria-label="طرح">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="6" y1="12" x2="18" y2="12" /></svg>
+    </button>
+
+    <button class="key num" data-digit="1">1</button>
+    <button class="key num" data-digit="2">2</button>
+    <button class="key num" data-digit="3">3</button>
+    <button class="key op" data-action="operator" data-op="+" aria-label="جمع">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="12" y1="6" x2="12" y2="18" /><line x1="6" y1="12" x2="18" y2="12" /></svg>
+    </button>
+
+    <button class="key num" data-action="sign" aria-label="تغيير الإشارة">⁺∕₋</button>
+    <button class="key num" data-digit="0">0</button>
+    <button class="key num" data-action="decimal">.</button>
+    <button class="key op" data-action="equals" aria-label="يساوي">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="6" y1="9.5" x2="18" y2="9.5" /><line x1="6" y1="14.5" x2="18" y2="14.5" /></svg>
+    </button>
+  </div>
+  </div><!-- /body -->
+
+  <!-- overlays -->
+  <div class="backdrop" id="backdrop"></div>
+
+  <div class="menu" id="menu">
+    <div class="menu-item" data-mode="basic">
+      <span class="chk" data-chk="basic">✓</span>
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M9 6l-2 2 2 2M15 6l2 2-2 2"/><line x1="8" y1="16" x2="16" y2="16"/><line x1="12" y1="14" x2="12" y2="18"/></svg></span>
+      <span class="lbl">أساسية</span>
+    </div>
+    <div class="menu-item" data-mode="scientific">
+      <span class="chk" data-chk="scientific"></span>
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 5h6M4 5c4 0 3 14 7 14M12 9l6 6M18 9l-6 6"/></svg></span>
+      <span class="lbl">علمية</span>
+    </div>
+    <div class="menu-item" data-open="notes">
+      <span class="chk"></span>
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h11l5 5v11H4z"/><path d="M8 12h8M8 16h5"/></svg></span>
+      <span class="lbl">الملاحظات الحسابية</span>
+    </div>
+    <div class="menu-sep"></div>
+    <div class="menu-item" data-open="convert">
+      <span class="chk"></span>
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg></span>
+      <span class="lbl">تحويل</span>
+    </div>
+    <div class="menu-item" data-toggle="arabic">
+      <span class="chk" data-chk="arabic"></span>
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l3 6 4-14h9"/></svg></span>
+      <span class="lbl">حاسبة عربية</span>
+    </div>
+  </div>
+
+  <!-- history sheet -->
+  <div class="sheet" id="historySheet">
+    <div class="sheet-head">
+      <button class="sheet-x" data-close>✕</button>
+      <button class="sheet-action" id="editBtn">تعديل</button>
+    </div>
+    <div class="sheet-body" id="historyBody"></div>
+  </div>
+
+  <!-- notes sheet -->
+  <div class="sheet" id="notesSheet">
+    <div class="sheet-head">
+      <button class="sheet-x" data-close>✕</button>
+      <span class="title">الملاحظات الحسابية</span>
+      <span style="width:34px"></span>
+    </div>
+    <div class="sheet-body">
+      <textarea class="notes-ta" id="notesTa" placeholder="اكتب عملية في كل سطر…&#10;10 + 5&#10;sqrt(144)&#10;3 × (2 + 4)"></textarea>
+      <div class="notes-hint">كل سطر يُحسب تلقائيًا</div>
+      <ul class="notes-res" id="notesRes"></ul>
+    </div>
+  </div>
+
+  <!-- convert sheet -->
+  <div class="sheet" id="convertSheet">
+    <div class="sheet-head">
+      <button class="sheet-x" data-close>✕</button>
+      <span class="title">تحويل الوحدات</span>
+      <span style="width:34px"></span>
+    </div>
+    <div class="sheet-body">
+      <div class="conv-cats" id="convCats"></div>
+      <div class="conv-row">
+        <select id="convFrom"></select>
+        <input id="convInput" type="text" inputmode="decimal" value="1" />
+      </div>
+      <div class="conv-row">
+        <select id="convTo"></select>
+        <input id="convOutput" class="conv-out" type="text" readonly />
+      </div>
+      <div class="conv-note" id="convNote"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =================== state =================== */
+  var state = {
+    expr: "0",          // current expression string (symbols: + − × ÷ ^ digits . ( ) π e func)
+    lastExpr: "",       // expression shown small after "="
+    justEvaluated: false,
+    error: false
+  };
+  var mode = "basic";        // basic | scientific
+  var arabic = false;        // Arabic-Indic numerals in display
+  var angleMode = "deg";     // deg | rad
+  var shift = false;         // ثانوي — inverse trig
+  var memory = 0;            // memory register (ذاكرة)
+  var history = [];
+  var histEditing = false;
+  var HKEY = "calc.history.v1";
+  var MAX_NUM_DIGITS = 12;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var exprBig = $("exprBig"), exprSmall = $("exprSmall"), clearBtn = $("clearBtn");
+  var phone = $("phone");
+  var root = document.documentElement;
+  var LAST = { d: 78, s: 56 };   // last computed button diameters (main, sci)
+
+  /* =================== responsive layout =================== */
+  function layout() {
+    // fill the whole viewport on every device, then scale the calculator to fit
+    var W = root.clientWidth || window.innerWidth;
+    var H = window.innerHeight;
+    phone.style.width = W + "px";
+    phone.style.height = H + "px";
+
+    var isSci = phone.classList.contains("scientific");
+    var landscape = W > H * 1.15 && W >= 640;   // computer / wide screens
+    phone.classList.toggle("landscape", landscape);
+    var refBase = Math.min(W, H * 0.6);
+    var gap = Math.max(6, Math.min(refBase * 0.03, 16));
+    var padX = Math.max(12, Math.min(W * 0.045, 40));
+    var maxColW = W - 2 * padX;
+    var headerH = document.querySelector(".header").offsetHeight || 56;
+    var slack = 12;
+
+    function place(colW, minDisp) {
+      root.style.setProperty("--gap", gap + "px");
+      root.style.setProperty("--padx", padX + "px");
+      root.style.setProperty("--col-w", colW + "px");
+      $("menu").style.top = (headerH + 4) + "px";
+      $("menu").style.left = Math.max(8, (W - colW) / 2) + "px";
+      document.querySelector(".display").style.minHeight = minDisp + "px";
+    }
+
+    if (landscape) {
+      // display fills the left, keypad sits on the right; 5 rows fill the height
+      root.style.setProperty("--gap", gap + "px");
+      root.style.setProperty("--padx", padX + "px");
+      var padYl = Math.max(8, Math.min(H * 0.05, 26));
+      var rowH = (H - headerH - padYl - 4 * gap) / 5;
+      var minDispW = Math.max(150, W * 0.16);
+      if (isSci) {
+        // display on top (full width), keypad row (6 sci + 4 pad cols) below
+        var dispH = Math.max(90, Math.min(H * 0.22, 210));
+        rowH = (H - headerH - dispH - padYl - 5 * gap) / 5;
+        var sMul = 1.35, pMul = 1.7;
+        var maxRowW = W - 2 * padX;
+        if (rowH * (6 * sMul + 4 * pMul) + 9 * gap > maxRowW) {
+          rowH = (maxRowW - 9 * gap) / (6 * sMul + 4 * pMul);
+        }
+        rowH = Math.max(20, Math.min(rowH, H * 0.15));
+        root.style.setProperty("--sci-w", (rowH * sMul) + "px");
+        root.style.setProperty("--sci-h", rowH + "px");
+        root.style.setProperty("--pad-w", (rowH * pMul) + "px");
+        root.style.setProperty("--pad-h", rowH + "px");
+        root.style.setProperty("--pill", (rowH * 0.5) + "px");
+        root.style.setProperty("--disp-h", dispH + "px");
+        LAST.d = dispH * 0.64;
+      } else {
+        var dl = Math.min(rowH, Math.max(70, H * 0.17), (W * 0.5 - 3 * gap) / 4);
+        dl = Math.max(40, dl);
+        root.style.setProperty("--main-btn", dl + "px");
+        root.style.setProperty("--disp-w", Math.max(200, Math.min(4 * dl + 3 * gap, W * 0.32)) + "px");
+        LAST.d = dl * 1.25;
+      }
+      $("menu").style.top = (headerH + 4) + "px";
+      $("menu").style.left = padX + "px";
+      document.querySelector(".display").style.minHeight = "0px";
+      return;
+    }
+
+    if (isSci) {
+      // 6-col function grid (5 rows) + 4-col number pad (5 rows) = 10 pill rows
+      var colW = Math.min(maxColW, 640);
+      var minDisp = Math.max(50, H * 0.07);
+      var padBottom = padX;
+      var padW = (colW - 3 * gap) / 4;
+      var sciW = (colW - 5 * gap) / 6;
+      var budget = H - headerH - minDisp - slack - 9 * gap - padBottom;
+      var rowH = Math.max(24, Math.min(budget / 10, sciW * 0.9, 66)); // keep buttons wider than tall
+      var pill = Math.min(rowH, sciW) * 0.5;
+      root.style.setProperty("--pad-w", padW + "px");
+      root.style.setProperty("--pad-h", rowH + "px");
+      root.style.setProperty("--sci-w", sciW + "px");
+      root.style.setProperty("--sci-h", rowH + "px");
+      root.style.setProperty("--pill", pill + "px");
+      LAST.d = rowH * 1.05;
+      place(colW, minDisp);
+      return;
+    }
+
+    // basic mode: circular buttons
+    var wMain = (maxColW - 3 * gap) / 4;
+    var minDispB = Math.max(66, H * 0.10);
+    var cap = Math.max(80, H * 0.145);
+    var availH = H - headerH - minDispB - gap - padX - slack;
+    var d = Math.min(wMain, (availH - 4 * gap) / 5, cap);
+    d = Math.max(38, d);
+    var colWb = 4 * d + 3 * gap;
+    root.style.setProperty("--main-btn", d + "px");
+    LAST.d = d;
+    place(colWb, minDispB);
+  }
+
+  /* =================== numerals / formatting =================== */
+  var AR = ["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];
+  function toArabic(s) { return arabic ? s.replace(/[0-9]/g, function (d) { return AR[+d]; }) : s; }
+
+  function groupNumbers(str) {
+    // add thousands separators to each numeric run
+    return str.replace(/\d+(\.\d*)?/g, function (m) {
+      var dot = m.indexOf(".");
+      var intPart = dot === -1 ? m : m.slice(0, dot);
+      var rest = dot === -1 ? "" : m.slice(dot);
+      intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      return intPart + rest;
+    });
+  }
+  function display(str) { return toArabic(groupNumbers(str)); }
+
+  /* =================== evaluator (shunting-yard) =================== */
+  var FUNCS = ["asin","acos","atan","sinh","cosh","tanh","sin","cos","tan","ln","log","sqrt","cbrt","sec","csc","cot","abs","exp"];
+
+  function tokenize(e) {
+    var t = [], i = 0;
+    // a value-ending token means the next value must be joined with an implicit "×"
+    function ve() { var a = t[t.length - 1]; return a && (a.t === "num" || a.t === "rp" || (a.t === "op" && a.v === "!")); }
+    function pushVal(tok) { if (ve()) t.push({ t: "op", v: "*" }); t.push(tok); }
+    while (i < e.length) {
+      var c = e[i];
+      if (c === " ") { i++; continue; }
+      if ((c >= "0" && c <= "9") || c === ".") {
+        var n = "";
+        while (i < e.length && ((e[i] >= "0" && e[i] <= "9") || e[i] === ".")) { n += e[i]; i++; }
+        pushVal({ t: "num", v: parseFloat(n) }); continue;
+      }
+      if (c === "×" || c === "*") { t.push({ t: "op", v: "*" }); i++; continue; }
+      if (c === "÷" || c === "/") { t.push({ t: "op", v: "/" }); i++; continue; }
+      if (c === "−" || c === "-") { t.push({ t: "op", v: "-" }); i++; continue; }
+      if (c === "+") { t.push({ t: "op", v: "+" }); i++; continue; }
+      if (c === "^") { t.push({ t: "op", v: "^" }); i++; continue; }
+      if (c === "!") { t.push({ t: "op", v: "!" }); i++; continue; }
+      if (c === "(") { pushVal({ t: "lp" }); i++; continue; }
+      if (c === ")") { t.push({ t: "rp" }); i++; continue; }
+      if (c === "π") { pushVal({ t: "num", v: Math.PI }); i++; continue; }
+      var f = null;
+      for (var k = 0; k < FUNCS.length; k++) { if (e.startsWith(FUNCS[k], i)) { f = FUNCS[k]; break; } }
+      if (f) { pushVal({ t: "func", v: f }); i += f.length; continue; }
+      if (c === "e") { pushVal({ t: "num", v: Math.E }); i++; continue; }
+      throw new Error("bad token: " + c);
+    }
+    return t;
+  }
+
+  var PREC = { "+": 2, "-": 2, "*": 3, "/": 3, "u-": 4, "^": 5, "!": 6 };
+  var RIGHT = { "^": true, "u-": true };
+
+  function toRPN(tokens) {
+    var out = [], st = [], prev = null;
+    for (var i = 0; i < tokens.length; i++) {
+      var tk = tokens[i];
+      if (tk.t === "num") { out.push(tk); }
+      else if (tk.t === "func") { st.push(tk); }
+      else if (tk.t === "op") {
+        var op = tk.v;
+        if (op === "-" && (prev === null || (prev.t === "op" && prev.v !== "!") || prev.t === "lp" || prev.t === "func")) op = "u-";
+        if (op === "!") { out.push({ t: "op", v: "!" }); }
+        else if (op === "u-") { st.push({ t: "op", v: "u-" }); }
+        else {
+          while (st.length) {
+            var top = st[st.length - 1];
+            if (top.t === "op") {
+              var better = RIGHT[op] ? PREC[top.v] > PREC[op] : PREC[top.v] >= PREC[op];
+              if (better) out.push(st.pop()); else break;
+            } else if (top.t === "func") { out.push(st.pop()); }
+            else break;
+          }
+          st.push({ t: "op", v: op });
+        }
+      }
+      else if (tk.t === "lp") { st.push(tk); }
+      else if (tk.t === "rp") {
+        while (st.length && st[st.length - 1].t !== "lp") out.push(st.pop());
+        if (!st.length) throw new Error("mismatched )");
+        st.pop();
+        if (st.length && st[st.length - 1].t === "func") out.push(st.pop());
+      }
+      prev = tk;
+    }
+    while (st.length) { var s = st.pop(); if (s.t === "lp") throw new Error("mismatched ("); out.push(s); }
+    return out;
+  }
+
+  function factorial(n) {
+    if (n < 0 || !Number.isInteger(n)) throw new Error("bad !");
+    if (n > 170) return Infinity;
+    var r = 1; for (var i = 2; i <= n; i++) r *= i; return r;
+  }
+  function applyFunc(f, x) {
+    var d = angleMode === "deg" ? Math.PI / 180 : 1;
+    switch (f) {
+      case "sin": return Math.sin(x * d);
+      case "cos": return Math.cos(x * d);
+      case "tan": return Math.tan(x * d);
+      case "asin": return Math.asin(x) / d;
+      case "acos": return Math.acos(x) / d;
+      case "atan": return Math.atan(x) / d;
+      case "sinh": return Math.sinh(x);
+      case "cosh": return Math.cosh(x);
+      case "tanh": return Math.tanh(x);
+      case "ln": return Math.log(x);
+      case "log": return Math.log10(x);
+      case "sqrt": return Math.sqrt(x);
+      case "cbrt": return Math.cbrt(x);
+      case "sec": return 1 / Math.cos(x * d);
+      case "csc": return 1 / Math.sin(x * d);
+      case "cot": return 1 / Math.tan(x * d);
+      case "abs": return Math.abs(x);
+      case "exp": return Math.exp(x);
+    }
+    throw new Error("bad func");
+  }
+  function evalRPN(rpn) {
+    var s = [];
+    for (var i = 0; i < rpn.length; i++) {
+      var tk = rpn[i];
+      if (tk.t === "num") s.push(tk.v);
+      else if (tk.t === "func") { if (!s.length) throw new Error("x"); s.push(applyFunc(tk.v, s.pop())); }
+      else if (tk.t === "op") {
+        if (tk.v === "u-") { if (!s.length) throw new Error("x"); s.push(-s.pop()); }
+        else if (tk.v === "!") { if (!s.length) throw new Error("x"); s.push(factorial(s.pop())); }
+        else {
+          if (s.length < 2) throw new Error("x");
+          var b = s.pop(), a = s.pop();
+          if (tk.v === "+") s.push(a + b);
+          else if (tk.v === "-") s.push(a - b);
+          else if (tk.v === "*") s.push(a * b);
+          else if (tk.v === "/") s.push(a / b);
+          else if (tk.v === "^") s.push(Math.pow(a, b));
+        }
+      }
+    }
+    if (s.length !== 1) throw new Error("bad expr");
+    return s[0];
+  }
+  function evaluate(e) {
+    var opens = (e.match(/\(/g) || []).length, closes = (e.match(/\)/g) || []).length;
+    if (opens > closes) e += new Array(opens - closes + 1).join(")");
+    return evalRPN(toRPN(tokenize(e)));
+  }
+
+  function formatResult(n) {
+    if (!isFinite(n)) return "خطأ";
+    if (n === 0) return "0";
+    var abs = Math.abs(n), s;
+    if (abs >= 1e15 || abs < 1e-10) {
+      // out of the safe range: format directly (the 1e10 rounding below would overflow)
+      s = n.toExponential(8).replace(/(\.\d*?)0+e/, "$1e").replace(/\.e/, "e");
+    } else {
+      var r = Math.round((n + (n >= 0 ? 1 : -1) * Number.EPSILON) * 1e10) / 1e10;
+      if (Object.is(r, -0)) r = 0;
+      s = String(r);
+      if (s.indexOf("e") !== -1 || s.indexOf("E") !== -1) s = plainNumber(r); // 1e-7 -> 0.0000001 (tokenizer-safe)
+      if (s.replace(/[^\d]/g, "").length > 16) s = plainNumber(Number(r.toPrecision(13)));
+    }
+    return s;
+  }
+
+  /* =================== display =================== */
+  function render() {
+    var big, small;
+    if (state.error) { big = "خطأ"; small = ""; }
+    else if (state.justEvaluated) { big = display(state.expr); small = display(state.lastExpr); }
+    else { big = display(state.expr); small = ""; }
+
+    exprBig.textContent = big;
+    exprSmall.textContent = small;
+
+    var base = LAST.d * 1.12;                 // big display scales with button size
+    var len = big.length;
+    var f = len <= 6 ? 1 : len <= 8 ? 0.86 : len <= 10 ? 0.72 : len <= 13 ? 0.58 : len <= 17 ? 0.46 : len <= 22 ? 0.38 : 0.32;
+    exprBig.style.fontSize = (base * f) + "px";
+    exprSmall.style.fontSize = (base * 0.3) + "px";
+    exprBig.scrollLeft = exprBig.scrollWidth;
+
+    clearBtn.textContent = (state.error || state.justEvaluated || state.expr === "0") ? "حذف" : "مسح";
+  }
+
+  /* =================== input actions =================== */
+  function resetAll() { state.expr = "0"; state.lastExpr = ""; state.justEvaluated = false; state.error = false; }
+
+  function trailingNumber() {
+    var m = state.expr.match(/(\d+\.?\d*|\.\d+|\.)$/);
+    return m ? m[0] : "";
+  }
+  function digitCount(s) { return s.replace(/[^0-9]/g, "").length; }
+
+  function inputDigit(d) {
+    if (state.error) resetAll();
+    if (state.justEvaluated) { state.expr = "0"; state.justEvaluated = false; }
+    var seg = trailingNumber();
+    if (seg === "0") { state.expr = state.expr.slice(0, -1) + d; }
+    else {
+      if (digitCount(seg) >= MAX_NUM_DIGITS) { render(); return; }
+      state.expr += d;
+    }
+    render();
+  }
+
+  function inputDecimal() {
+    if (state.error) resetAll();
+    if (state.justEvaluated) { state.expr = "0"; state.justEvaluated = false; }
+    var seg = trailingNumber();
+    if (seg.indexOf(".") !== -1) { render(); return; }
+    if (seg === "") state.expr += "0.";
+    else state.expr += ".";
+    render();
+  }
+
+  function inputOperator(op) {
+    if (state.error) return;
+    if (state.justEvaluated) { state.justEvaluated = false; }   // continue from result
+    if (state.expr === "") state.expr = "0";
+    var last = state.expr.slice(-1);
+    if (/[+\-−×÷^]$/.test(last)) {
+      if (state.expr.slice(-2, -1) === "(") return; // a unary minus right after "(" — don't turn it binary
+      state.expr = state.expr.slice(0, -1) + op;
+    }
+    else if (last === "(") { if (op === "−") state.expr += op; }
+    else state.expr += op;
+    render();
+  }
+
+  function toggleSign() {
+    if (state.error) return;
+    if (state.justEvaluated) { state.justEvaluated = false; }
+    var m = state.expr.match(/(\d+\.?\d*|\.\d+)$/);
+    if (!m) return;
+    var num = m[0], start = state.expr.length - num.length, before = state.expr.slice(0, start);
+    if (before.slice(-1) === "-") {
+      var bm = before.slice(0, -1);
+      if (bm === "" || /[+\-−×÷^(]$/.test(bm)) { state.expr = bm + num; render(); return; }
+    }
+    if (before === "" || /[+\-−×÷^(]$/.test(before)) state.expr = before + "-" + num;
+    render();
+  }
+
+  function plainNumber(v) {
+    // stringify without exponential notation (tokenizer reads "e" as Euler's number)
+    if (!isFinite(v)) return "0";
+    var s = String(v);
+    if (s.indexOf("e") === -1 && s.indexOf("E") === -1) return s;
+    var neg = v < 0, str = Math.abs(v).toFixed(20).replace(/0+$/, "").replace(/\.$/, "");
+    return (neg ? "-" : "") + str;
+  }
+  function percent() {
+    if (state.error) return;
+    if (state.justEvaluated) { state.justEvaluated = false; }
+    var m = state.expr.match(/(\d+\.?\d*|\.\d+)$/);
+    if (!m) return;
+    var num = m[0], start = state.expr.length - num.length;
+    var val = parseFloat(num) / 100;
+    state.expr = state.expr.slice(0, start) + plainNumber(val);
+    render();
+  }
+
+  function backspace() {
+    if (state.error) { resetAll(); render(); return; }
+    if (state.justEvaluated) { resetAll(); render(); return; }
+    if (state.expr.length <= 1) state.expr = "0";
+    else {
+      state.expr = state.expr.slice(0, -1);
+      if (state.expr === "" || state.expr === "-") state.expr = "0";
+    }
+    render();
+  }
+
+  function inputSci(tok) {
+    if (tok === "deg") { angleMode = angleMode === "deg" ? "rad" : "deg"; $("degBtn").textContent = angleMode === "deg" ? "درجة" : "راديان"; return; }
+    if (state.error) resetAll();
+
+    // closing paren: only when there is an unmatched "(" and a value precedes it
+    if (tok === ")") {
+      if (state.justEvaluated) return;
+      var opens = (state.expr.match(/\(/g) || []).length;
+      var closes = (state.expr.match(/\)/g) || []).length;
+      if (opens <= closes || /[+\-−×÷^(]$/.test(state.expr.slice(-1))) return;
+      state.expr += ")"; render(); return;
+    }
+
+    var isFunc = /\($/.test(tok) && tok !== "(";
+    var needsLeft = tok.charAt(0) === "^" || tok === "!" || tok === "×10^"; // need a value on the left
+    var startsValue = isFunc || tok === "(" || tok === "π" || tok === "e" || /^[0-9e]/.test(tok);
+
+    if (state.justEvaluated) {
+      state.justEvaluated = false;
+      if (tok === "π" || tok === "e") state.expr = "0";       // constant starts fresh
+      else if (isFunc) { state.expr = tok + state.expr; render(); return; } // wrap the result: √9
+      // powers / "(" / 10^ / e^ continue from the result (appended below)
+    }
+
+    if (needsLeft && (state.expr === "" || state.expr === "0" || /[+\-−×÷^(]$/.test(state.expr.slice(-1)))) return;
+
+    if (state.expr === "0" && startsValue) state.expr = "";
+    state.expr += tok;
+    render();
+  }
+
+  function toggleShift() {
+    shift = !shift;
+    $("shiftBtn").classList.toggle("on", shift);
+    var t = document.querySelectorAll(".sci .trig");
+    for (var i = 0; i < t.length; i++) {
+      t[i].innerHTML = shift ? t[i].getAttribute("data-lbl2") : t[i].getAttribute("data-lbl");
+    }
+  }
+
+  function inputRandom() {
+    if (state.error) resetAll();
+    var v = plainNumber(Math.round(Math.random() * 1e6) / 1e6);
+    if (state.justEvaluated) { state.expr = "0"; state.justEvaluated = false; }
+    if (state.expr === "0") state.expr = v;
+    else if (/[\d.)]$/.test(state.expr.slice(-1))) state.expr += "×" + v; // avoid digit concatenation
+    else state.expr += v;
+    render();
+  }
+
+  function currentValue() {
+    try { return evaluate(state.expr.replace(/[+\-−×÷^]$/, "")); }
+    catch (e) { var n = parseFloat(state.expr); return isFinite(n) ? n : 0; }
+  }
+  function memoryOp(op) {
+    if (op === "MC") { memory = 0; toast("مُسحت الذاكرة"); return; }
+    if (op === "MR") {
+      if (state.error) resetAll();
+      var v = plainNumber(memory);
+      if (state.justEvaluated) { state.expr = "0"; state.justEvaluated = false; }
+      if (state.expr === "0") state.expr = v;
+      else if (/[\d.)]$/.test(state.expr.slice(-1))) state.expr += "×" + v;
+      else state.expr += v;
+      render();
+      return;
+    }
+    var val = currentValue();
+    if (isFinite(val)) { memory += (op === "M+" ? 1 : -1) * val; toast(op === "M+" ? "أُضيف إلى الذاكرة" : "طُرح من الذاكرة"); }
+  }
+
+  function equals() {
+    if (state.error || state.justEvaluated) return;
+    var e = state.expr.replace(/[+\-−×÷^]$/, "");
+    if (e === "" || e === "0") { return; }
+    var val;
+    try { val = evaluate(e); } catch (err) { setError(); return; }
+    if (!isFinite(val)) { setError(); return; }
+    var res = formatResult(val);
+    if (res === "خطأ") { setError(); return; }
+    var hasOp = /[+×÷^!]/.test(e) || /[−-].*\d/.test(e.slice(1)) || /(sin|cos|tan|ln|log|sqrt|abs|exp|π)/.test(e) || e.indexOf("(") !== -1;
+    if (hasOp && e !== res) pushHistory(e, res);
+    state.lastExpr = e;
+    state.expr = res;
+    state.justEvaluated = true;
+    render();
+  }
+
+  function setError() { state.error = true; state.justEvaluated = false; render(); }
+
+  /* =================== history =================== */
+  function loadHistory() { try { history = JSON.parse(localStorage.getItem(HKEY) || "[]"); } catch (e) { history = []; } }
+  function saveHistory() { try { localStorage.setItem(HKEY, JSON.stringify(history.slice(0, 200))); } catch (e) {} }
+  function pushHistory(e, r) { history.unshift({ e: e, r: r, t: Date.now() }); saveHistory(); }
+
+  function dayLabel(ts) {
+    var d = new Date(ts), now = new Date();
+    var s = function (x) { return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime(); };
+    var diff = Math.round((s(now) - s(d)) / 86400000);
+    if (diff <= 0) return "اليوم";
+    if (diff === 1) return "أمس";
+    try { return d.toLocaleDateString("ar", { day: "numeric", month: "long" }); }
+    catch (e2) { return d.getDate() + "/" + (d.getMonth() + 1); }
+  }
+
+  function renderHistory() {
+    var body = $("historyBody");
+    body.innerHTML = "";
+    if (!history.length) { body.innerHTML = '<div class="hist-empty">لا توجد عمليات محفوظة</div>'; return; }
+    var curLabel = null;
+    history.forEach(function (item, idx) {
+      var lab = dayLabel(item.t);
+      if (lab !== curLabel) {
+        curLabel = lab;
+        var g = document.createElement("div"); g.className = "hist-group"; g.textContent = lab;
+        body.appendChild(g);
+      }
+      var row = document.createElement("div"); row.className = "hist-item";
+      var del = document.createElement("button"); del.className = "del"; del.textContent = "−";
+      del.onclick = function (ev) { ev.stopPropagation(); history.splice(idx, 1); saveHistory(); renderHistory(); };
+      var calc = document.createElement("div"); calc.className = "calc";
+      calc.innerHTML = '<div class="he">' + display(item.e) + ' =</div><div class="hr">' + display(item.r) + '</div>';
+      row.onclick = function () {
+        state.expr = item.r; state.justEvaluated = false; state.error = false; render();
+        closeSheets();
+      };
+      row.appendChild(del); row.appendChild(calc);
+      body.appendChild(row);
+    });
+  }
+
+  /* =================== notes =================== */
+  function renderNotes() {
+    var lines = $("notesTa").value.split("\n");
+    var ul = $("notesRes"); ul.innerHTML = "";
+    lines.forEach(function (ln) {
+      var raw = ln.trim();
+      if (!raw) return;
+      var expr = raw.replace(/x/gi, "×").replace(/\bpi\b/gi, "π");
+      var li = document.createElement("li");
+      try {
+        var v = evaluate(expr.replace(/=$/, ""));
+        if (isFinite(v)) {
+          li.innerHTML = '<span class="ex">' + groupNumbers(raw.replace(/=$/, "").trim()) + '</span><span class="rs">= ' + groupNumbers(formatResult(v)) + '</span>';
+          ul.appendChild(li);
+        }
+      } catch (e) { /* skip non-math lines */ }
+    });
+  }
+
+  /* =================== convert =================== */
+  var CONV = {
+    length: { name: "الطول", units: { "متر": 1, "كم": 1000, "سم": 0.01, "مم": 0.001, "ميل": 1609.344, "قدم": 0.3048, "بوصة": 0.0254 } },
+    mass: { name: "الوزن", units: { "كجم": 1, "جرام": 0.001, "مجم": 1e-6, "طن": 1000, "رطل": 0.453592, "أونصة": 0.0283495 } },
+    temp: { name: "الحرارة", units: { "°م": 1, "°ف": 1, "كلفن": 1 } },
+    currency: { name: "العملة", units: { "دولار": 1, "ريال": 3.75, "يورو": 0.92, "جنيه م": 48, "درهم": 3.67, "إسترليني": 0.79 } }
+  };
+  var convCat = "length";
+  function convert(cat, from, to, val) {
+    if (cat === "temp") {
+      var c = from === "°م" ? val : from === "°ف" ? (val - 32) * 5 / 9 : val - 273.15;
+      return to === "°م" ? c : to === "°ف" ? c * 9 / 5 + 32 : c + 273.15;
+    }
+    if (cat === "currency") {
+      // stored as "units per 1 USD" -> convert via USD base for exact results
+      var r = CONV.currency.units;
+      return (val / r[from]) * r[to];
+    }
+    var f = CONV[cat].units;
+    return val * f[from] / f[to];
+  }
+  function buildConvUnits() {
+    var from = $("convFrom"), to = $("convTo");
+    from.innerHTML = ""; to.innerHTML = "";
+    var keys = Object.keys(CONV[convCat].units);
+    keys.forEach(function (k) {
+      from.appendChild(new Option(k, k));
+      to.appendChild(new Option(k, k));
+    });
+    to.selectedIndex = Math.min(1, keys.length - 1);
+    $("convNote").textContent = convCat === "currency" ? "* أسعار الصرف تقريبية وثابتة للعرض فقط" : "";
+    runConvert();
+  }
+  function runConvert() {
+    var val = parseFloat($("convInput").value);
+    if (isNaN(val)) { $("convOutput").value = ""; return; }
+    var out = convert(convCat, $("convFrom").value, $("convTo").value, val);
+    $("convOutput").value = groupNumbers(formatResult(out));
+  }
+  function buildConvCats() {
+    var box = $("convCats"); box.innerHTML = "";
+    Object.keys(CONV).forEach(function (k) {
+      var b = document.createElement("button");
+      b.className = "conv-cat" + (k === convCat ? " active" : "");
+      b.textContent = CONV[k].name;
+      b.onclick = function () { convCat = k; buildConvCats(); buildConvUnits(); };
+      box.appendChild(b);
+    });
+  }
+
+  /* =================== overlays =================== */
+  var backdrop = $("backdrop");
+  function openMenu() { $("menu").classList.add("show"); backdrop.classList.add("show"); }
+  function closeMenu() { $("menu").classList.remove("show"); if (!anySheetOpen()) backdrop.classList.remove("show"); }
+  function anySheetOpen() { return document.querySelector(".sheet.show") != null; }
+  function openSheet(id) {
+    closeMenu();
+    $(id).classList.add("show"); backdrop.classList.add("show");
+  }
+  function closeSheets() {
+    var s = document.querySelectorAll(".sheet.show");
+    for (var i = 0; i < s.length; i++) s[i].classList.remove("show");
+    if (!$("menu").classList.contains("show")) backdrop.classList.remove("show");
+  }
+  function setMode(m) {
+    mode = m;
+    phone.classList.toggle("scientific", m === "scientific");
+    layout();
+    updateMenuChecks();
+    render();
+  }
+  function updateMenuChecks() {
+    document.querySelector('[data-chk="basic"]').textContent = mode === "basic" ? "✓" : "";
+    document.querySelector('[data-chk="scientific"]').textContent = mode === "scientific" ? "✓" : "";
+    document.querySelector('[data-chk="arabic"]').textContent = arabic ? "✓" : "";
+  }
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    setTimeout(function () { t.classList.remove("show"); }, 1400);
+  }
+
+  /* =================== wiring =================== */
+  document.querySelector(".keys").addEventListener("click", function (e) {
+    var b = e.target.closest("button.key"); if (!b) return;
+    if (b.hasAttribute("data-digit")) return inputDigit(b.getAttribute("data-digit"));
+    switch (b.getAttribute("data-action")) {
+      case "operator": inputOperator(b.getAttribute("data-op")); break;
+      case "equals": equals(); break;
+      case "clear": resetAll(); render(); break;
+      case "backspace": backspace(); break;
+      case "percent": percent(); break;
+      case "sign": toggleSign(); break;
+      case "decimal": inputDecimal(); break;
+    }
+  });
+
+  $("sci").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.hasAttribute("data-mem")) return memoryOp(b.getAttribute("data-mem"));
+    if (b.hasAttribute("data-act")) {
+      var a = b.getAttribute("data-act");
+      if (a === "2nd") toggleShift();
+      else if (a === "rand") inputRandom();
+      return;
+    }
+    if (!b.hasAttribute("data-sci")) return;
+    var tok = (shift && b.hasAttribute("data-sci2")) ? b.getAttribute("data-sci2") : b.getAttribute("data-sci");
+    inputSci(tok);
+  });
+
+  $("menuBtn").addEventListener("click", openMenu);
+  $("histBtn").addEventListener("click", function () { histEditing = false; $("historySheet").classList.remove("editing"); $("editBtn").textContent = "تعديل"; renderHistory(); openSheet("historySheet"); });
+  backdrop.addEventListener("click", function () { closeMenu(); closeSheets(); });
+
+  $("menu").addEventListener("click", function (e) {
+    var it = e.target.closest(".menu-item"); if (!it) return;
+    if (it.hasAttribute("data-mode")) { setMode(it.getAttribute("data-mode")); closeMenu(); }
+    else if (it.hasAttribute("data-toggle")) { arabic = !arabic; updateMenuChecks(); render(); closeMenu(); }
+    else if (it.hasAttribute("data-open")) {
+      var w = it.getAttribute("data-open");
+      if (w === "notes") { renderNotes(); openSheet("notesSheet"); }
+      else if (w === "convert") { buildConvCats(); buildConvUnits(); openSheet("convertSheet"); }
+    }
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-close]"), function (b) {
+    b.addEventListener("click", closeSheets);
+  });
+
+  $("editBtn").addEventListener("click", function () {
+    histEditing = !histEditing;
+    $("historySheet").classList.toggle("editing", histEditing);
+    this.textContent = histEditing ? "تم" : "تعديل";
+  });
+
+  $("notesTa").addEventListener("input", renderNotes);
+  $("convInput").addEventListener("input", runConvert);
+  $("convFrom").addEventListener("change", runConvert);
+  $("convTo").addEventListener("change", runConvert);
+
+  // keyboard support
+  var kop = { "+": "+", "-": "−", "*": "×", "/": "÷" };
+  window.addEventListener("keydown", function (e) {
+    if (anySheetOpen() || $("menu").classList.contains("show")) return;
+    var k = e.key;
+    if (k >= "0" && k <= "9") { inputDigit(k); e.preventDefault(); }
+    else if (k === ".") { inputDecimal(); e.preventDefault(); }
+    else if (kop[k]) { inputOperator(kop[k]); e.preventDefault(); }
+    else if (k === "^") { inputSci("^"); e.preventDefault(); }
+    else if (k === "(" || k === ")") { inputSci(k); e.preventDefault(); }
+    else if (k === "Enter" || k === "=") { equals(); e.preventDefault(); }
+    else if (k === "Backspace") { backspace(); e.preventDefault(); }
+    else if (k === "Escape") { resetAll(); render(); e.preventDefault(); }
+    else if (k === "%") { percent(); e.preventDefault(); }
+  });
+
+  /* init */
+  loadHistory();
+  updateMenuChecks();
+  layout();
+  render();
+  window.addEventListener("resize", function () { layout(); render(); });
+  window.addEventListener("orientationchange", function () { setTimeout(function () { layout(); render(); }, 120); });
+})();
+</script>
