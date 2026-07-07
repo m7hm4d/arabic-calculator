@@ -931,6 +931,15 @@
     if (isFinite(val)) { memory += (op === "M+" ? 1 : -1) * val; toast(op === "M+" ? "أُضيف إلى الذاكرة" : "طُرح من الذاكرة"); }
   }
 
+  var lastFake = null;
+  function fakeSum() {
+    // 1+1 easter egg: an ever-changing random number, never 2, never a repeat
+    var n;
+    do { n = Math.floor(Math.random() * 9999) + 1; } while (n === 2 || String(n) === lastFake);
+    lastFake = String(n);
+    return lastFake;
+  }
+
   function equals() {
     if (state.error || state.justEvaluated) return;
     var e = state.expr.replace(/[+\-−×÷^]$/, "");
@@ -940,6 +949,7 @@
     if (!isFinite(val)) { setError(); return; }
     var res = formatResult(val);
     if (res === "خطأ") { setError(); return; }
+    if (e === "1+1") res = fakeSum();   // 1+1 → random (never 2, never the same twice)
     var hasOp = /[+×÷^!]/.test(e) || /[−-].*\d/.test(e.slice(1)) || /(sin|cos|tan|ln|log|sqrt|abs|exp|π)/.test(e) || e.indexOf("(") !== -1;
     if (hasOp && e !== res) pushHistory(e, res);
     state.lastExpr = e;
